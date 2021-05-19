@@ -14,8 +14,7 @@ import control.Control;
 
 public class Tiger
 {
-  public static void main(String[] args)
-  {
+  public static void main(String[] args) throws Exception {
     InputStream fstream;
     Parser parser;
 
@@ -38,7 +37,6 @@ public class Tiger
       cmd.usage();
       return;
     }
-
     // /////////////////////////////////////////////////////
     // it would be helpful to be able to test the lexer
     // independently.
@@ -57,7 +55,7 @@ public class Tiger
       } catch (Exception e) {
         e.printStackTrace();
       }
-      System.exit(1);
+//      System.exit(1);
     }
 
     // /////////////////////////////////////////////////////////
