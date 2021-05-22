@@ -163,6 +163,8 @@ public class Ast
     {
     }
 
+
+
     // +
     public static class Add extends T
     {
@@ -584,12 +586,12 @@ public class Ast
     public static class While extends T
     {
       public Exp.T condition;
-      public T body;
+      public java.util.LinkedList<T> stms;
 
-      public While(Exp.T condition, T body)
+      public While(Exp.T condition, LinkedList<T> stms)
       {
         this.condition = condition;
-        this.body = body;
+        this.stms = stms;
       }
 
       @Override
