@@ -95,11 +95,13 @@ public class PrettyPrintVisitor implements Visitor {
     public void visit(Call e) {
         e.exp.accept(this);
         this.say("." + e.id + "(");
-        for(int i=0;i<e.args.size();i++){
-            Exp.T x=e.args.get(i);
-            x.accept(this);
-            if(i!=e.args.size()-1){
-                say(", ");
+        if (e.args != null) {
+            for (int i = 0; i < e.args.size(); i++) {
+                Exp.T x = e.args.get(i);
+                x.accept(this);
+                if (i != e.args.size() - 1) {
+                    say(", ");
+                }
             }
         }
 //        for (Exp.T x : e.args) {
@@ -198,20 +200,24 @@ public class PrettyPrintVisitor implements Visitor {
 
     @Override
     public void visit(AssignArray s) {
+        printSpaces();
         say(s.id + "[");
         s.index.accept(this);
         say("]=");
         s.exp.accept(this);
+        sayln(";");
     }
 
     @Override
     public void visit(Block s) {
+        printSpaces();
         sayln("{");
         indent();
         for (Stm.T stm : s.stms) {
             stm.accept(this);
         }
         unIndent();
+        printSpaces();
         sayln("}");
     }
 
@@ -249,16 +255,7 @@ public class PrettyPrintVisitor implements Visitor {
         say("while(");
         s.condition.accept(this);
         sayln(")");
-        printSpaces();
-        sayln("{");
-        indent();
-        for (Stm.T stm :
-                s.stms) {
-            stm.accept(this);
-        }
-        unIndent();
-        printSpaces();
-        sayln("}");
+        s.stm.accept(this);
     }
 
     // type

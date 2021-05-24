@@ -80,7 +80,7 @@ public class Fac {
                             new Type.Int(), "sum"), new Dec.DecSingle(new Type.Int(), "i")), new util.Flist<Stm.T>()
                     .list(new Assign("i", new Num(0)),
                             new Assign("sum", new Num(0)),
-                            new Stm.While(new Lt(new Id("i"), new Id("n")), new util.Flist<Stm.T>().list(new Assign("sum", new Exp.Add(new Id("sum"), new Id("i"))), new Assign("i", new Exp.Add(new Id("i"), new Num(1)))))),
+                            new Stm.While(new Lt(new Id("i"), new Id("n")), new Stm.Block(new util.Flist<Stm.T>().list(new Assign("sum", new Exp.Add(new Id("sum"), new Id("i"))), new Assign("i", new Exp.Add(new Id("i"), new Num(1))))))),
                     new Id("num"))));
     public static Program.T sumProg = new ProgramSingle(sum, new util.Flist<Ast.Class.T>().list(Doit));
 }
