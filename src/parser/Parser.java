@@ -45,6 +45,47 @@ public class Parser {
         return;
     }
 
+    private Ast.Exp.T warpExpLineNum(Ast.Exp.T exp, int lineNum) {
+        exp.setLineNum(lineNum);
+        return exp;
+    }
+
+    private Ast.Stm.T warpStmLineNum(Ast.Stm.T stm, int lineNum) {
+        stm.setLineNum(lineNum);
+        return stm;
+    }
+
+    private Ast.Type.T warpTypeLineNum(Ast.Type.T type, int lineNum) {
+        type.setLineNum(lineNum);
+        return type;
+    }
+
+    private Ast.Dec.T warpDecLineNum(Ast.Dec.T dec, int lineNum) {
+        dec.setLineNum(lineNum);
+        return dec;
+    }
+
+    private Ast.Method.T warpMethodLineNum(Ast.Method.T method, int lineNum) {
+        method.setLineNum(lineNum);
+        return method;
+    }
+
+    private Ast.Class.T warpClassLineNum(Ast.Class.T classs, int lineNum) {
+        classs.setLineNum(lineNum);
+        return classs;
+    }
+
+    private Ast.MainClass.T warpMainClassLineNum(Ast.MainClass.T mainClass, int lineNum) {
+        mainClass.setLineNum(lineNum);
+        return mainClass;
+    }
+
+    private Ast.Program.T warpProgLineNum(Ast.Program.T prog, int lineNum) {
+        prog.setLineNum(lineNum);
+        return prog;
+    }
+
+
     // ////////////////////////////////////////////////////////////
     // below are method for parsing.
 
@@ -84,20 +125,20 @@ public class Parser {
             case TOKEN_NUM:
                 int num = Integer.parseInt(current.lexeme);
                 advance();
-                return new Ast.Exp.Num(num);
+                return warpExpLineNum(new Ast.Exp.Num(num), current.lineNum);
             case TOKEN_TRUE:
                 advance();
-                return new Ast.Exp.True();
+                return warpExpLineNum(new Ast.Exp.True(), current.lineNum);
             case TOKEN_FALSE:
                 advance();
-                return new Ast.Exp.False();
+                return warpExpLineNum(new Ast.Exp.False(), current.lineNum);
             case TOKEN_THIS:
                 advance();
-                return new Ast.Exp.This();
+                return warpExpLineNum(new Ast.Exp.This(), current.lineNum);
             case TOKEN_ID:
                 String id = current.lexeme;
                 advance();
-                return new Ast.Exp.Id(id);
+                return warpExpLineNum(new Ast.Exp.Id(id), current.lineNum);
             case TOKEN_NEW: {
                 advance();
                 switch (current.kind) {
@@ -106,13 +147,13 @@ public class Parser {
                         eatToken(Kind.TOKEN_LBRACK);
                         Ast.Exp.T exp = parseExp();
                         eatToken(Kind.TOKEN_RBRACK);
-                        return new Ast.Exp.NewIntArray(exp);
+                        return warpExpLineNum(new Ast.Exp.NewIntArray(exp), current.lineNum);
                     case TOKEN_ID:
                         String newId = current.lexeme;
                         advance();
                         eatToken(Kind.TOKEN_LPAREN);
                         eatToken(Kind.TOKEN_RPAREN);
-                        return new Ast.Exp.NewObject(newId);
+                        return warpExpLineNum(new Ast.Exp.NewObject(newId), current.lineNum);
                     default:
                         error();
                         return null;
@@ -135,19 +176,19 @@ public class Parser {
                 advance();
                 if (current.kind == Kind.TOKEN_LENGTH) {
                     advance();
-                    return new Ast.Exp.Not(new Ast.Exp.Length(exp));
+                    return new Ast.Exp.Not(warpExpLineNum(new Ast.Exp.Length(exp), current.lineNum));
                 }
                 String id = current.lexeme;
                 eatToken(Kind.TOKEN_ID);
                 eatToken(Kind.TOKEN_LPAREN);
                 LinkedList<Ast.Exp.T> args = parseExpList();
                 eatToken(Kind.TOKEN_RPAREN);
-                return new Ast.Exp.Call(exp, id, args);
+                return warpExpLineNum(new Ast.Exp.Call(exp, id, args), current.lineNum);
             } else {
                 advance();
                 Ast.Exp.T index = parseExp();
                 eatToken(Kind.TOKEN_RBRACK);
-                return new Ast.Exp.Not(new Ast.Exp.ArraySelect(exp, index));
+                return warpExpLineNum(new Ast.Exp.Not(warpExpLineNum(new Ast.Exp.ArraySelect(exp, index), current.lineNum)), current.lineNum);
             }
         }
         return exp;
@@ -168,7 +209,7 @@ public class Parser {
         Ast.Exp.T ans = parseTimesExp();
         while (current.kind == Kind.TOKEN_TIMES) {
             advance();
-            ans = new Ast.Exp.Times(ans, parseTimesExp());
+            ans = warpExpLineNum(new Ast.Exp.Times(ans, parseTimesExp()), current.lineNum);
         }
         return ans;
     }
@@ -185,9 +226,9 @@ public class Parser {
             }
             advance();
             if (add) {
-                ans = new Ast.Exp.Add(ans, parseAddSubExp());
+                ans = warpExpLineNum(new Ast.Exp.Add(ans, parseAddSubExp()), current.lineNum);
             } else {
-                ans = new Ast.Exp.Sub(ans, parseAddSubExp());
+                ans = warpExpLineNum(new Ast.Exp.Sub(ans, parseAddSubExp()), current.lineNum);
             }
         }
         return ans;
@@ -199,7 +240,7 @@ public class Parser {
         Ast.Exp.T ans = parseLtExp();
         while (current.kind == Kind.TOKEN_LT) {
             advance();
-            ans = new Ast.Exp.Lt(ans, parseLtExp());
+            ans = warpExpLineNum(new Ast.Exp.Lt(ans, parseLtExp()), current.lineNum);
         }
         return ans;
     }
@@ -210,7 +251,7 @@ public class Parser {
         Ast.Exp.T ans = parseAndExp();
         while (current.kind == Kind.TOKEN_AND) {
             advance();
-            ans = new Ast.Exp.And(ans, parseAndExp());
+            ans = warpExpLineNum(new Ast.Exp.And(ans, parseAndExp()), current.lineNum);
         }
         return ans;
     }
@@ -230,7 +271,7 @@ public class Parser {
                 advance();
                 LinkedList<Ast.Stm.T> stms = parseStatements();
                 eatToken(Kind.TOKEN_RBRACE);
-                return new Ast.Stm.Block(stms);
+                return warpStmLineNum(new Ast.Stm.Block(stms), current.lineNum);
             case TOKEN_IF:
                 advance();
                 eatToken(Kind.TOKEN_LPAREN);
@@ -239,14 +280,14 @@ public class Parser {
                 Ast.Stm.T thenn = parseStatement();
                 eatToken(Kind.TOKEN_ELSE);
                 Ast.Stm.T elsee = parseStatement();
-                return new Ast.Stm.If(conditon, thenn, elsee);
+                return warpStmLineNum(new Ast.Stm.If(conditon, thenn, elsee), current.lineNum);
             case TOKEN_WHILE:
                 advance();
                 eatToken(Kind.TOKEN_LPAREN);
                 Ast.Exp.T condition = parseExp();
                 eatToken(Kind.TOKEN_RPAREN);
                 Ast.Stm.T stm = parseStatement();
-                return new Ast.Stm.While(condition, stm);
+                return warpStmLineNum(new Ast.Stm.While(condition, stm), current.lineNum);
             case TOKEN_SYSTEM:
                 advance();
                 eatToken(Kind.TOKEN_DOT);
@@ -257,7 +298,7 @@ public class Parser {
                 Ast.Exp.T exp = parseExp();
                 eatToken(Kind.TOKEN_RPAREN);
                 eatToken(Kind.TOKEN_SEMI);
-                return new Ast.Stm.Print(exp);
+                return warpStmLineNum(new Ast.Stm.Print(exp), current.lineNum);
             case TOKEN_ID:
                 String id = current.lexeme;
                 advance();
@@ -265,7 +306,7 @@ public class Parser {
                     advance();
                     Ast.Exp.T assexp = parseExp();
                     eatToken(Kind.TOKEN_SEMI);
-                    return new Ast.Stm.Assign(id, assexp);
+                    return warpStmLineNum(new Ast.Stm.Assign(id, assexp), current.lineNum);
                 } else if (current.kind == Kind.TOKEN_LBRACK) {
                     advance();
                     Ast.Exp.T index = parseExp();
@@ -273,7 +314,7 @@ public class Parser {
                     eatToken(Kind.TOKEN_ASSIGN);
                     Ast.Exp.T assexp = parseExp();
                     eatToken(Kind.TOKEN_SEMI);
-                    return new Ast.Stm.AssignArray(id, index, assexp);
+                    return warpStmLineNum(new Ast.Stm.AssignArray(id, index, assexp), current.lineNum);
                 }
                 return null;
             default:
@@ -404,7 +445,7 @@ public class Parser {
             Ast.Stm.T tmp = null;
             if (current.kind == Kind.TOKEN_ASSIGN) {
                 advance();
-                tmp = new Ast.Stm.Assign(last_step, parseExp());
+                tmp = warpStmLineNum(new Ast.Stm.Assign(last_step, parseExp()), current.lineNum);
                 last_step = null;
                 eatToken(Kind.TOKEN_SEMI);
             }
@@ -416,7 +457,7 @@ public class Parser {
             Ast.Exp.T retExp = parseExp();
             eatToken(Kind.TOKEN_SEMI);
             eatToken(Kind.TOKEN_RBRACE);
-            return new Ast.Method.MethodSingle(type, id, formals, locals, stms, retExp);
+            return warpMethodLineNum(new Ast.Method.MethodSingle(type, id, formals, locals, stms, retExp), current.lineNum);
         } else {
             error();
         }
@@ -449,7 +490,7 @@ public class Parser {
         LinkedList<Ast.Dec.T> decs = parseVarDecls();
         LinkedList<Ast.Method.T> methods = parseMethodDecls();
         eatToken(Kind.TOKEN_RBRACE);
-        return new Ast.Class.ClassSingle(id, extendss, decs, methods);
+        return warpClassLineNum(new Ast.Class.ClassSingle(id, extendss, decs, methods), current.lineNum);
     }
 
     // ClassDecls -> ClassDecl ClassDecls
@@ -493,7 +534,7 @@ public class Parser {
         Ast.Stm.T stm = parseStatement();
         eatToken(Kind.TOKEN_RBRACE);
         eatToken(Kind.TOKEN_RBRACE);
-        return new Ast.MainClass.MainClassSingle(id, args, stm);
+        return (Ast.MainClass.MainClassSingle) warpMainClassLineNum(new Ast.MainClass.MainClassSingle(id, args, stm), current.lineNum);
     }
 
     // Program -> MainClass ClassDecl*
@@ -502,7 +543,7 @@ public class Parser {
         LinkedList<Ast.Class.T> classes = parseClassDecls();
         eatToken(Kind.TOKEN_EOF);
         System.out.println("program parse over");
-        return new Ast.Program.ProgramSingle(mainClass, classes);
+        return warpProgLineNum(new Ast.Program.ProgramSingle(mainClass, classes), current.lineNum);
 //    return;
     }
 

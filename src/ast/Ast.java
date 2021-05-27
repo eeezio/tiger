@@ -14,6 +14,16 @@ public class Ast {
             // class: 2
             // Such that one can easily tell who is who
             public abstract int getNum();
+
+            int lineNum;
+
+            public void setLineNum(int num) {
+                this.lineNum = num;
+            }
+
+            public int getLineNum() {
+                return lineNum;
+            }
         }
 
         // boolean
@@ -109,6 +119,15 @@ public class Ast {
     // dec
     public static class Dec {
         public static abstract class T implements ast.Acceptable {
+            int lineNum;
+
+            public void setLineNum(int num) {
+                this.lineNum = num;
+            }
+
+            public int getLineNum() {
+                return lineNum;
+            }
         }
 
         public static class DecSingle extends T {
@@ -131,14 +150,25 @@ public class Ast {
     // expression
     public static class Exp {
         public static abstract class T implements ast.Acceptable {
+            int lineNum;
+
+            public void setLineNum(int num) {
+                this.lineNum = num;
+            }
+
+            public int getLineNum() {
+                return lineNum;
+            }
         }
 
-
-        // +
-        public static class Add extends T {
+        public static abstract class BinaryExp extends T {
             public T left;
             public T right;
 
+        }
+
+        // +
+        public static class Add extends BinaryExp {
             public Add(T left, T right) {
                 this.left = left;
                 this.right = right;
@@ -152,9 +182,7 @@ public class Ast {
         }
 
         // and
-        public static class And extends T {
-            public T left;
-            public T right;
+        public static class And extends BinaryExp {
 
             public And(T left, T right) {
                 this.left = left;
@@ -194,6 +222,7 @@ public class Ast {
             public java.util.LinkedList<Type.T> at; // arg's type
             public Type.T rt;
 
+
             public Call(T exp, String id, java.util.LinkedList<T> args) {
                 this.exp = exp;
                 this.id = id;
@@ -210,6 +239,7 @@ public class Ast {
 
         // False
         public static class False extends T {
+
             public False() {
             }
 
@@ -230,6 +260,7 @@ public class Ast {
                 this.id = id;
                 this.type = null;
                 this.isField = false;
+                this.lineNum = lineNum;
             }
 
             public Id(String id, Type.T type, boolean isField) {
@@ -261,10 +292,7 @@ public class Ast {
         }
 
         // <
-        public static class Lt extends T {
-            public T left;
-            public T right;
-
+        public static class Lt extends BinaryExp {
             public Lt(T left, T right) {
                 this.left = left;
                 this.right = right;
@@ -338,9 +366,7 @@ public class Ast {
         }
 
         // -
-        public static class Sub extends T {
-            public T left;
-            public T right;
+        public static class Sub extends BinaryExp {
 
             public Sub(T left, T right) {
                 this.left = left;
@@ -356,8 +382,10 @@ public class Ast {
 
         // this
         public static class This extends T {
+
             public This() {
             }
+
 
             @Override
             public void accept(ast.Visitor v) {
@@ -367,13 +395,12 @@ public class Ast {
         }
 
         // *
-        public static class Times extends T {
-            public T left;
-            public T right;
+        public static class Times extends BinaryExp {
 
             public Times(T left, T right) {
                 this.left = left;
                 this.right = right;
+                this.lineNum = lineNum;
             }
 
             @Override
@@ -401,6 +428,15 @@ public class Ast {
     // statement
     public static class Stm {
         public static abstract class T implements ast.Acceptable {
+            int lineNum;
+
+            public void setLineNum(int num) {
+                this.lineNum = num;
+            }
+
+            public int getLineNum() {
+                return lineNum;
+            }
         }
 
         // assign
@@ -445,6 +481,7 @@ public class Ast {
 
             public Block(java.util.LinkedList<T> stms) {
                 this.stms = stms;
+                this.lineNum = lineNum;
             }
 
             @Override
@@ -509,6 +546,15 @@ public class Ast {
     // method
     public static class Method {
         public static abstract class T implements ast.Acceptable {
+            int lineNum;
+
+            public void setLineNum(int num) {
+                this.lineNum = num;
+            }
+
+            public int getLineNum() {
+                return lineNum;
+            }
         }
 
         public static class MethodSingle extends T {
@@ -540,6 +586,15 @@ public class Ast {
     // class
     public static class Class {
         public static abstract class T implements ast.Acceptable {
+            int lineNum;
+
+            public void setLineNum(int num) {
+                this.lineNum = num;
+            }
+
+            public int getLineNum() {
+                return lineNum;
+            }
         }
 
         public static class ClassSingle extends T {
@@ -567,6 +622,15 @@ public class Ast {
     // main class
     public static class MainClass {
         public static abstract class T implements ast.Acceptable {
+            int lineNum;
+
+            public void setLineNum(int num) {
+                this.lineNum = num;
+            }
+
+            public int getLineNum() {
+                return lineNum;
+            }
         }
 
         public static class MainClassSingle extends T {
@@ -592,6 +656,15 @@ public class Ast {
     // whole program
     public static class Program {
         public static abstract class T implements ast.Acceptable {
+            int lineNum;
+
+            public void setLineNum(int num) {
+                this.lineNum = num;
+            }
+
+            public int getLineNum() {
+                return lineNum;
+            }
         }
 
         public static class ProgramSingle extends T {
