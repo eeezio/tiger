@@ -2,6 +2,7 @@ package elaborator;
 
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.Locale;
 
 import ast.Ast;
 import ast.Ast.Class;
@@ -131,8 +132,10 @@ public class ElaboratorVisitor implements ast.Visitor {
             Dec.DecSingle dec = (Dec.DecSingle) mty.argsType.get(i);
             if (dec.type.toString().equals(argsty.get(i).toString()))
                 ;
+            else if (classTable.get(argsty.get(i).toString()).extendss.equals(dec.type.toString())) ;
             else
                 error("semantic error at line " + e.getLineNum() + ": type mismatch at " + i + "st arg!");
+
         }
         this.type = mty.retType;
         e.at = argsty;
@@ -267,6 +270,9 @@ public class ElaboratorVisitor implements ast.Visitor {
     public void visit(AssignArray s) {
         Type.T type = methodTable.get(s.id);
         if (type == null) {
+            type = classTable.get(currentClass, s.id);
+        }
+        if (type == null) {
             error("semantic error at line " + s.getLineNum() + ": " + s.id + " used before define!");
             return;
         }
@@ -341,14 +347,13 @@ public class ElaboratorVisitor implements ast.Visitor {
     @Override
     public void visit(Method.MethodSingle m) {
         // construct the method table
-
+        this.methodTable.clearTable();
         this.methodTable.put(m.formals, m.locals);
 //    if(true)
         if (ConAst.elabMethodTable) {
             System.out.print(m.id + ":");
             this.methodTable.dump();
         }
-
 
         for (Stm.T s : m.stms)
             s.accept(this);

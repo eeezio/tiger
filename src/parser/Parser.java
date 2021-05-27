@@ -96,9 +96,9 @@ public class Parser {
     // ->
     // ExpRest -> , Exp
     private LinkedList<Ast.Exp.T> parseExpList() {
-        if (current.kind == Kind.TOKEN_RPAREN)
-            return null;
         LinkedList<Ast.Exp.T> ans = new LinkedList<>();
+        if (current.kind == Kind.TOKEN_RPAREN)
+            return ans;
         ans.add(parseExp());
         while (current.kind == Kind.TOKEN_COMMER) {
             advance();
@@ -176,7 +176,7 @@ public class Parser {
                 advance();
                 if (current.kind == Kind.TOKEN_LENGTH) {
                     advance();
-                    return new Ast.Exp.Not(warpExpLineNum(new Ast.Exp.Length(exp), current.lineNum));
+                    return warpExpLineNum(new Ast.Exp.Length(exp), current.lineNum);
                 }
                 String id = current.lexeme;
                 eatToken(Kind.TOKEN_ID);
@@ -188,7 +188,7 @@ public class Parser {
                 advance();
                 Ast.Exp.T index = parseExp();
                 eatToken(Kind.TOKEN_RBRACK);
-                return warpExpLineNum(new Ast.Exp.Not(warpExpLineNum(new Ast.Exp.ArraySelect(exp, index), current.lineNum)), current.lineNum);
+                return warpExpLineNum(new Ast.Exp.ArraySelect(exp, index), current.lineNum);
             }
         }
         return exp;
@@ -197,10 +197,15 @@ public class Parser {
     // TimesExp -> ! TimesExp
     // -> NotExp
     private Ast.Exp.T parseTimesExp() {
+        int count = 0;
         while (current.kind == Kind.TOKEN_NOT) {
             advance();
+            count += 1;
         }
-        return parseNotExp();
+        if (count % 2 == 0)
+            return parseNotExp();
+        else
+            return new Ast.Exp.Not(parseNotExp());
     }
 
     // AddSubExp -> TimesExp * TimesExp
@@ -482,8 +487,8 @@ public class Parser {
         eatToken(Kind.TOKEN_ID);
         String extendss = null;
         if (current.kind == Kind.TOKEN_EXTENDS) {
-            extendss = current.lexeme;
             eatToken(Kind.TOKEN_EXTENDS);
+            extendss = current.lexeme;
             eatToken(Kind.TOKEN_ID);
         }
         eatToken(Kind.TOKEN_LBRACE);

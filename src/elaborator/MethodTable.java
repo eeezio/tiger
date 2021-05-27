@@ -14,6 +14,10 @@ public class MethodTable {
         this.table = new java.util.Hashtable<String, Type.T>();
     }
 
+    public void clearTable(){
+        table.clear();
+    }
+
     // Duplication is not allowed
     public void put(LinkedList<Dec.T> formals,
                     LinkedList<Dec.T> locals) {
