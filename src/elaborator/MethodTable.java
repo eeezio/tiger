@@ -1,8 +1,10 @@
 package elaborator;
 
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Set;
 
+import ast.Ast;
 import ast.Ast.Dec;
 import ast.Ast.Type;
 import util.Todo;
@@ -10,11 +12,14 @@ import util.Todo;
 public class MethodTable {
     private java.util.Hashtable<String, Type.T> table;
 
+    private Hashtable<String, Boolean> decUsed;
+
     public MethodTable() {
         this.table = new java.util.Hashtable<String, Type.T>();
+        this.decUsed = new Hashtable<>();
     }
 
-    public void clearTable(){
+    public void clearTable() {
         table.clear();
     }
 
@@ -37,9 +42,19 @@ public class MethodTable {
                 System.exit(1);
             }
             this.table.put(decc.id, decc.type);
+            this.decUsed.put(decc.id, false);
         }
 
     }
+
+    public void setDecTrue(String id) {
+        decUsed.put(id, true);
+    }
+
+    public Hashtable<String, Boolean> getDecUsed() {
+        return decUsed;
+    }
+
 
     // return null for non-existing keys
     public Type.T get(String id) {
@@ -52,7 +67,7 @@ public class MethodTable {
         Set<String> keys = this.table.keySet();
         for (String key : keys
         ) {
-            System.out.println(key+"|->"+this.table.get(key));
+            System.out.println(key + "|->" + this.table.get(key));
         }
         System.out.println("----------------------------");
     }

@@ -1,6 +1,7 @@
 package elaborator;
 
 import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Locale;
 
@@ -254,6 +255,8 @@ public class ElaboratorVisitor implements ast.Visitor {
         // if search failed, then s.id must
         if (type == null)
             type = this.classTable.get(this.currentClass, s.id);
+        else
+            this.methodTable.setDecTrue(s.id);
         if (type == null) {
             error("semantic error at line " + s.getLineNum() + ": " + s.id + " used before define!");
             return;
@@ -271,7 +274,8 @@ public class ElaboratorVisitor implements ast.Visitor {
         Type.T type = methodTable.get(s.id);
         if (type == null) {
             type = classTable.get(currentClass, s.id);
-        }
+        } else
+            methodTable.setDecTrue(s.id);
         if (type == null) {
             error("semantic error at line " + s.getLineNum() + ": " + s.id + " used before define!");
             return;
@@ -348,6 +352,7 @@ public class ElaboratorVisitor implements ast.Visitor {
     public void visit(Method.MethodSingle m) {
         // construct the method table
         this.methodTable.clearTable();
+        this.methodTable.getDecUsed().clear();
         this.methodTable.put(m.formals, m.locals);
 //    if(true)
         if (ConAst.elabMethodTable) {
@@ -358,6 +363,18 @@ public class ElaboratorVisitor implements ast.Visitor {
         for (Stm.T s : m.stms)
             s.accept(this);
         m.retExp.accept(this);
+        if (!this.type.toString().equals(m.retType.toString())) {
+            error("semantic error at line " + m.getLineNum() + ": return type not match");
+        }
+
+        Hashtable<String, Boolean> decUsed = methodTable.getDecUsed();
+
+        for (String key :
+                decUsed.keySet()) {
+            if (!decUsed.get(key))
+                System.out.println("warning: func at line "+m.getLineNum()+" declare var "+key+" but never used.");
+        }
+
         return;
     }
 
