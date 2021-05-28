@@ -127,7 +127,6 @@ class Tree{
     public boolean Compare(int num1 , int num2){
 	boolean ntb ;
 	int nti ;
-
 	ntb = false ;
 	nti = num2 + 1 ;
 	if (num1 < num2) ntb = false ;
