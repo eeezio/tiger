@@ -16,9 +16,13 @@ void *Tiger_new (void *vtable, int size)
 {
   // You should write 4 statements for this function.
   // #1: "malloc" a chunk of memory (be careful of the size) :
+  void *obj=(void* )malloc(size);
   // #2: clear this chunk of memory (zero off it):
+  memset(obj,0,size);
   // #3: set up the "vptr" pointer to the value of "vtable":
+  memcpy(obj,&vtable,8);
   // #4: return the pointer
+  return obj;
 }
 
 // "new" an array of size "length", do necessary
@@ -38,4 +42,7 @@ void *Tiger_new_array (int length)
 {
   // You can use the C "malloc" facilities, as above.
   // Your code here:
+  void* array=(void* )malloc(length*sizeof(int));
+  memset(array,0,length*sizeof(int));
+  return array;
 }

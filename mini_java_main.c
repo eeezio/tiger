@@ -48,7 +48,7 @@ struct Fac_vtable Fac_vtable_ =
 
 
 // main method
-int Tiger_main ()
+int main ()
 {
   struct Fac * x_0;
   System_out_println ((x_0=((struct Fac*)(Tiger_new (&Fac_vtable_, sizeof(struct Fac)))), x_0->vptr->ComputeFac(x_0, 10)));
