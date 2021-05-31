@@ -323,7 +323,8 @@ public class PrettyPrintVisitor implements Visitor {
 
     @Override
     public void visit(MainMethodSingle m) {
-        this.sayln("int Tiger_main ()");
+//        this.sayln("int Tiger_main ()");
+        this.sayln("int main ()");
         this.sayln("{");
         for (Dec.T dec : m.locals) {
             this.say("  ");
@@ -383,13 +384,13 @@ public class PrettyPrintVisitor implements Visitor {
     public void visit(ProgramSingle p) {
         // we'd like to output to a file, rather than the "stdout".
         try {
-            String outputName = null;
-            if (Control.ConCodeGen.outputName != null)
-                outputName = Control.ConCodeGen.outputName;
-            else if (Control.ConCodeGen.fileName != null)
-                outputName = Control.ConCodeGen.fileName + ".c";
-            else
-                outputName = "a.c";
+            String outputName = "mini_java_main.c";
+//            if (Control.ConCodeGen.outputName != null)
+//                outputName = Control.ConCodeGen.outputName;
+//            else if (Control.ConCodeGen.fileName != null)
+//                outputName = Control.ConCodeGen.fileName + ".c";
+//            else
+//                outputName = "a.c";
 
             this.writer = new java.io.BufferedWriter(new java.io.OutputStreamWriter(
                     new java.io.FileOutputStream(outputName)));
