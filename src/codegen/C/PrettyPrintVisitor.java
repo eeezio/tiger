@@ -36,9 +36,12 @@ import codegen.C.Ast.Vtable;
 import codegen.C.Ast.Vtable.VtableSingle;
 import control.Control;
 
+import java.util.HashMap;
+
 public class PrettyPrintVisitor implements Visitor {
     private int indentLevel;
     private java.io.BufferedWriter writer;
+    private static HashMap<String, Boolean> localVar = new HashMap<>();
 
     public PrettyPrintVisitor() {
         this.indentLevel = 2;
@@ -121,7 +124,10 @@ public class PrettyPrintVisitor implements Visitor {
 
     @Override
     public void visit(Id e) {
-        this.say(e.id);
+        if (localVar.containsKey(e.id))
+            this.say(e.id);
+        else
+            this.say("this->" + e.id);
     }
 
     @Override
@@ -141,7 +147,6 @@ public class PrettyPrintVisitor implements Visitor {
 
     @Override
     public void visit(NewIntArray e) {
-        say("int* " + e.name + "=");
         say("(int*)malloc(");
         e.exp.accept(this);
         say("*sizeof(int))");
@@ -191,7 +196,10 @@ public class PrettyPrintVisitor implements Visitor {
     @Override
     public void visit(Assign s) {
         this.printSpaces();
-        this.say(s.id + " = ");
+        if (localVar.containsKey(s.id))
+            this.say(s.id + " = ");
+        else
+            this.say("this->" + s.id + "=");
         s.exp.accept(this);
         this.sayln(";");
         return;
@@ -200,7 +208,10 @@ public class PrettyPrintVisitor implements Visitor {
     @Override
     public void visit(AssignArray s) {
         this.printSpaces();
-        say(s.id + "[");
+        if (localVar.containsKey(s.id))
+            say(s.id + "[");
+        else
+            say("this->" + s.id + "[");
         s.index.accept(this);
         say("]=");
         s.exp.accept(this);
@@ -294,8 +305,10 @@ public class PrettyPrintVisitor implements Visitor {
         m.retType.accept(this);
         this.say(" " + m.classId + "_" + m.id + "(");
         int size = m.formals.size();
+        localVar.clear();
         for (Dec.T d : m.formals) {
             DecSingle dec = (DecSingle) d;
+            localVar.put(dec.id, true);
             size--;
             dec.type.accept(this);
             this.say(" " + dec.id);
@@ -307,6 +320,7 @@ public class PrettyPrintVisitor implements Visitor {
 
         for (Dec.T d : m.locals) {
             DecSingle dec = (DecSingle) d;
+            localVar.put(dec.id, true);
             this.say("  ");
             dec.type.accept(this);
             this.say(" " + dec.id + ";\n");
@@ -323,12 +337,13 @@ public class PrettyPrintVisitor implements Visitor {
 
     @Override
     public void visit(MainMethodSingle m) {
-//        this.sayln("int Tiger_main ()");
+        localVar.clear();
         this.sayln("int main ()");
         this.sayln("{");
         for (Dec.T dec : m.locals) {
             this.say("  ");
             DecSingle d = (DecSingle) dec;
+            localVar.put(d.id, true);
             d.type.accept(this);
             this.say(" ");
             this.sayln(d.id + ";");
