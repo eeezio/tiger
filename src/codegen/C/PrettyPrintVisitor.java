@@ -93,6 +93,7 @@ public class PrettyPrintVisitor implements Visitor {
     public void visit(And e) {
         e.left.accept(this);
         this.say("&&");
+        e.right.accept(this);
     }
 
     @Override
@@ -132,9 +133,9 @@ public class PrettyPrintVisitor implements Visitor {
 
     @Override
     public void visit(Length e) {
-        say("sizeof(");
+        say("*(int*)(");
         e.array.accept(this);
-        say(")/4");
+        say("-1)");
     }
 
     @Override
@@ -147,9 +148,9 @@ public class PrettyPrintVisitor implements Visitor {
 
     @Override
     public void visit(NewIntArray e) {
-        say("(int*)malloc(");
+        say("Tiger_new_array(");
         e.exp.accept(this);
-        say("*sizeof(int))");
+        say(")");
     }
 
     @Override
@@ -161,8 +162,9 @@ public class PrettyPrintVisitor implements Visitor {
 
     @Override
     public void visit(Not e) {
-        say("!");
+        say("!(");
         e.exp.accept(this);
+        say(")");
     }
 
     @Override
@@ -340,6 +342,8 @@ public class PrettyPrintVisitor implements Visitor {
         localVar.clear();
         this.sayln("int main ()");
         this.sayln("{");
+        printSpaces();
+        sayln("vtableInit();");
         for (Dec.T dec : m.locals) {
             this.say("  ");
             DecSingle d = (DecSingle) dec;
@@ -367,14 +371,15 @@ public class PrettyPrintVisitor implements Visitor {
         return;
     }
 
+    private void decVtable(VtableSingle v) {
+        this.sayln("struct " + v.id + "_vtable " + v.id + "_vtable_;");
+    }
+
     private void outputVtable(VtableSingle v) {
-        this.sayln("struct " + v.id + "_vtable " + v.id + "_vtable_ = ");
-        this.sayln("{");
         for (codegen.C.Ftuple t : v.ms) {
-            this.say("  ");
-            this.sayln(t.classs + "_" + t.id + ",");
+            printSpaces();
+            this.sayln(v.id + "_vtable_" + "." + t.id + "=" + t.classs + "_" + t.id + ";");
         }
-        this.sayln("};\n");
         return;
     }
 
@@ -428,6 +433,11 @@ public class PrettyPrintVisitor implements Visitor {
         }
         this.sayln("");
 
+        for (Vtable.T v : p.vtables) {
+            decVtable((VtableSingle) v);
+        }
+        this.sayln("");
+
         this.sayln("// methods");
         for (Method.T m : p.methods) {
             m.accept(this);
@@ -435,9 +445,14 @@ public class PrettyPrintVisitor implements Visitor {
         this.sayln("");
 
         this.sayln("// vtables");
+        this.sayln("void vtableInit()");
+        this.sayln("{");
+        indent();
         for (Vtable.T v : p.vtables) {
             outputVtable((VtableSingle) v);
         }
+        unIndent();
+        sayln("}");
         this.sayln("");
 
         this.sayln("// main method");

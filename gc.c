@@ -42,7 +42,8 @@ void *Tiger_new_array (int length)
 {
   // You can use the C "malloc" facilities, as above.
   // Your code here:
-  void* array=(void* )malloc(length*sizeof(int));
-  memset(array,0,length*sizeof(int));
-  return array;
+  void* array=(void* )malloc((length+1)*sizeof(int));
+  memset(array,0,(length+1)*sizeof(int));
+  *(int*)array=length;
+  return (int*)array+1;
 }
