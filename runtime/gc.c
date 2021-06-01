@@ -100,12 +100,13 @@ p---->| v_0          | \
 //           the Java heap.)
 void *Tiger_new (void *vtable, int size)
 {
-  // Your code here:
-  
+
+
 }
 
 // "new" an array of size "length", do necessary
 // initializations. And each array comes with an
+
 // extra "header" storing the array length and other information.
 /*    ----------------
       | vptr         | (this field should be empty for an array)
@@ -154,4 +155,3 @@ static void Tiger_gc ()
   // Your code here:
   
 }
-
