@@ -1,4 +1,6 @@
 /bin
 .idea/
 tiger.iml
-
+.DS_Store
+a.out
+mini_java_main.c
