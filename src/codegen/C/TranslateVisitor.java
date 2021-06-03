@@ -121,8 +121,10 @@ public class TranslateVisitor implements ast.Visitor {
 
     @Override
     public void visit(ast.Ast.Exp.Length e) {
+        String newid = this.genId();
+        this.tmpVars.add(new Dec.DecSingle(new Type.IntArray(), newid));
         e.array.accept(this);
-        this.exp = new Exp.Length(this.exp);
+        this.exp = new Exp.Length(newid, this.exp);
     }
 
     @Override
@@ -282,6 +284,8 @@ public class TranslateVisitor implements ast.Visitor {
     @Override
     public void visit(ast.Ast.Method.MethodSingle m) {
         this.tmpVars = new LinkedList<Dec.T>();
+        String argGcMap = "";
+        String localGcMap = "";
         m.retType.accept(this);
         Type.T newRetType = this.type;
         LinkedList<Dec.T> newFormals = new LinkedList<Dec.T>();
@@ -306,7 +310,7 @@ public class TranslateVisitor implements ast.Visitor {
         for (Dec.T dec : this.tmpVars) {
             locals.add(dec);
         }
-        this.method = new MethodSingle(newRetType, this.classId, m.id,
+        this.method = new MethodSingle(newRetType,  this.classId, m.id,
                 newFormals, locals, newStm, retExp);
         return;
     }
