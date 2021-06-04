@@ -199,7 +199,8 @@ public class TranslateVisitor implements ast.Visitor {
     @Override
     public void visit(ast.Ast.Stm.Assign s) {
         s.exp.accept(this);
-        this.stm = new Assign(s.id, this.exp);
+        s.type.accept(this);
+        this.stm = new Assign(s.id, this.exp, this.type);
         return;
     }
 
@@ -310,7 +311,7 @@ public class TranslateVisitor implements ast.Visitor {
         for (Dec.T dec : this.tmpVars) {
             locals.add(dec);
         }
-        this.method = new MethodSingle(newRetType,  this.classId, m.id,
+        this.method = new MethodSingle(newRetType, this.classId, m.id,
                 newFormals, locals, newStm, retExp);
         return;
     }

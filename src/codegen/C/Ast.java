@@ -322,10 +322,12 @@ public class Ast {
         public static class Assign extends T {
             public String id;
             public Exp.T exp;
+            public Type.T type;
 
-            public Assign(String id, Exp.T exp) {
+            public Assign(String id, Exp.T exp, Type.T type) {
                 this.id = id;
                 this.exp = exp;
+                this.type = type;
             }
 
             @Override
