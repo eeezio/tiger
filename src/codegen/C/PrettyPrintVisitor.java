@@ -132,6 +132,8 @@ public class PrettyPrintVisitor implements Visitor {
     public void visit(Call e) {
         this.say("(" + e.assign + "=");
         e.exp.accept(this);
+        this.say(",");
+        this.say("frame." + e.assign + "=" + e.assign);
         this.say(", ");
         this.say(e.assign + "->vptr->" + e.id + "(" + e.assign);
         int size = e.args.size();
@@ -341,6 +343,7 @@ public class PrettyPrintVisitor implements Visitor {
     public void visit(MethodSingle m) {
         sayln("struct " + m.classId + "_" + m.id + "_gc_frame{");
         indent();
+        saylnWithSpace("double length;");
         saylnWithSpace("void *gc_frame_prev;");
         HashSet<String> argsRefVar = searchMethodRefVar(m.formals);
         searchMethodRefVar(m.locals);
@@ -365,6 +368,7 @@ public class PrettyPrintVisitor implements Visitor {
         this.sayln("{");
 
         saylnWithSpace("struct " + m.classId + "_" + m.id + "_gc_frame frame;");
+        saylnWithSpace("frame.length=" + (m.formals.size() + m.locals.size()) + ";");
         saylnWithSpace("frame.gc_frame_prev=gc_frame_prev;");
         saylnWithSpace("gc_frame_prev=&frame;");
 
@@ -395,7 +399,10 @@ public class PrettyPrintVisitor implements Visitor {
     public void visit(MainMethodSingle m) {
         sayln("struct main" + "_gc_frame{");
         indent();
+        saylnWithSpace("double length;");
         saylnWithSpace("void *gc_frame_prev;");
+        searchMethodRefVar(m.locals);
+
         unIndent();
         sayln("};");
 
@@ -406,7 +413,7 @@ public class PrettyPrintVisitor implements Visitor {
         saylnWithSpace("struct main_gc_frame frame;");
         saylnWithSpace("frame.gc_frame_prev=gc_frame_prev;");
         saylnWithSpace("gc_frame_prev=&frame;");
-
+        saylnWithSpace("frame.length=" + m.locals.size() + ";");
         printSpaces();
         sayln("vtableInit();");
         for (Dec.T dec : m.locals) {
