@@ -117,7 +117,6 @@ static void errorWrongArg (char *name,
 void CommandLine_doarg (int argc, char **argv)
 {
   int index = 0;
-  
   // scan all input command-line arguments
   while (index<argc){
     if (strcmp(argv[index++], "@tiger")==0)
@@ -130,7 +129,7 @@ void CommandLine_doarg (int argc, char **argv)
     if ('@' != inputName[0]){
       break;
     }
-    
+
     // this is a potential argument
     int i = 0;
     for (; allArgs[i].action; i++){

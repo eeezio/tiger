@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// extern void *gc_frame_prev;
-
-void *gc_frame_prev;
+extern void *gc_frame_prev;
 
 static int Tiger_gc();
 // The Gimple Garbage Collector.
@@ -105,7 +103,6 @@ void *Tiger_new(void *vtable, int size)
     Tiger_gc();
   if (heap.fromFree + size > heap.to)
   {
-    printf("now at %x,end of from is %x,size is %d\n",heap.fromFree,heap.to,size);
     printf("OutOfMemory!\n");
     exit(1);
   }
@@ -166,7 +163,6 @@ void *Tiger_new_array(int length)
     Tiger_gc();
   if (heap.fromFree + total_size > heap.to)
   {
-    printf("now at %x,end of from is %x,size is %d\n",heap.fromFree,heap.to,total_size);
     printf("OutOfMemory!\n");
     exit(1);
   }
@@ -232,6 +228,6 @@ static int Tiger_gc()
   heap.to=heap.from+heap.size/2;
   heap.toStart = pre_from;
   heap.toNext = pre_from;
-  printf("collect garbage %d byte\n", garbage_collect_size);
+  printf("collect garbage %d bytes\n", garbage_collect_size);
   return garbage_collect_size;
 }

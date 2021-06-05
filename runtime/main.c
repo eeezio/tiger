@@ -22,6 +22,8 @@ int main(int argc, char **argv)
   // and "command-line.c"
   // Your code here:
 
+  CommandLine_doarg(argc, argv);
+
   // initialize the Java heap
   Tiger_heap_init(Control_heapSize);
 
