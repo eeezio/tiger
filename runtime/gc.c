@@ -101,24 +101,24 @@ p---->| v_0          | \
 //           the Java heap.)
 void *Tiger_new(void *vtable, int size)
 {
-  int total_size = size + 16;
-  if (heap.fromFree + total_size > heap.to)
+  if (heap.fromFree + size > heap.to)
     Tiger_gc();
-  if (heap.fromFree + total_size > heap.to)
+  if (heap.fromFree + size > heap.to)
   {
+    printf("now at %x,end of from is %x,size is %d\n",heap.fromFree,heap.to,size);
     printf("OutOfMemory!\n");
     exit(1);
   }
   else
   {
     void *obj = heap.fromFree;
-    memset(heap.fromFree, 0, total_size);
+    memset(heap.fromFree, 0, size);
     memcpy(heap.fromFree, &vtable, 8);
     int flag = 0;
     memcpy(heap.fromFree + 8, &flag, 4);
     memcpy(heap.fromFree + 12, &size, 4);
     memcpy(heap.fromFree + 16, &obj, 8);
-    heap.fromFree += total_size;
+    heap.fromFree += size;
     return obj;
   }
 }
@@ -166,6 +166,7 @@ void *Tiger_new_array(int length)
     Tiger_gc();
   if (heap.fromFree + total_size > heap.to)
   {
+    printf("now at %x,end of from is %x,size is %d\n",heap.fromFree,heap.to,total_size);
     printf("OutOfMemory!\n");
     exit(1);
   }
@@ -190,7 +191,6 @@ void *Tiger_new_array(int length)
 static int Tiger_gc()
 {
   // Your code here:
-  printf("=======gc begin========\n");
   int garbage_collect_size = 0;
   void *gc_frame = gc_frame_prev; //The gc_frame currently traversed to
   while (gc_frame != 0)
@@ -203,34 +203,33 @@ static int Tiger_gc()
     {
       void *obj_model;
       memcpy(&obj_model, ref_var + i * 8, 8); //current obj_model in traversed in this frame
-      void *forward;
-      memcpy(&forward, obj_model + 16, 8); //Avoid secondary copying
-      printf("%x %x\n",obj_model,forward);
-      if (forward <= heap.fromFree && forward >= heap.from)
+      if (obj_model <= heap.fromFree && obj_model >= heap.from)
       {
-        int copy_length;
-        int flag;
-        memcpy(&flag, obj_model + 8, 4);
-        memcpy(&copy_length, obj_model + 12, 4);
-        if (flag == 0)
+        void *forward;
+        memcpy(&forward, obj_model + 16, 8); //Avoid secondary copying
+        if (obj_model == forward)
         {
-          copy_length += 24;
-        } //normal obj
-        else
-        {
-          copy_length = copy_length * sizeof(int) + 24;
-        } //array obj
-        memcpy(obj_model + 16, &heap.toNext, 8);
-        memcpy(heap.toNext, obj_model, copy_length);
-        heap.toNext += copy_length;
+          int copy_length;
+          int flag;
+          memcpy(&flag, obj_model + 8, 4);
+          memcpy(&copy_length, obj_model + 12, 4);
+          if (flag != 0) //array obj
+          {
+            copy_length = copy_length * sizeof(int) + 24;
+          }
+          memcpy(obj_model + 16, &heap.toNext, 8);
+          memcpy(heap.toNext, obj_model, copy_length);
+          heap.toNext += copy_length;
+        }
       }
     }
-    gc_frame = (void *)(gc_frame + 8);
+    memcpy(&gc_frame, gc_frame + 8, 8);
   }
   void *pre_from = heap.from;
   garbage_collect_size = (heap.fromFree - heap.from) - (heap.toNext - heap.toStart);
   heap.from = heap.toStart;
   heap.fromFree = heap.toNext;
+  heap.to=heap.from+heap.size/2;
   heap.toStart = pre_from;
   heap.toNext = pre_from;
   printf("collect garbage %d byte\n", garbage_collect_size);
