@@ -2,8 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern void *gc_frame_prev;
+// extern void *gc_frame_prev;
 
+void *gc_frame_prev;
+
+static int Tiger_gc();
 // The Gimple Garbage Collector.
 
 //===============================================================//
@@ -111,8 +114,10 @@ void *Tiger_new(void *vtable, int size)
     void *obj = heap.fromFree;
     memset(heap.fromFree, 0, total_size);
     memcpy(heap.fromFree, &vtable, 8);
-    *(int *)(heap.fromFree + 8) = 0;
-    *(int *)(heap.fromFree + 12) = size;
+    int flag = 0;
+    memcpy(heap.fromFree + 8, &flag, 4);
+    memcpy(heap.fromFree + 12, &size, 4);
+    memcpy(heap.fromFree + 16, &obj, 8);
     heap.fromFree += total_size;
     return obj;
   }
@@ -168,8 +173,10 @@ void *Tiger_new_array(int length)
   {
     void *array = heap.fromFree;
     memset(heap.fromFree, 0, total_size);
-    *(int *)(heap.fromFree + 8) = 1;
-    *(int *)(heap.fromFree + 12) = length;
+    int flag = 1;
+    memcpy(heap.fromFree + 8, &flag, 4);
+    memcpy(heap.fromFree + 12, &length, 4);
+    memcpy(heap.fromFree + 16, &array, 8);
     heap.fromFree += total_size;
     return array;
   }
@@ -183,26 +190,38 @@ void *Tiger_new_array(int length)
 static int Tiger_gc()
 {
   // Your code here:
+  printf("=======gc begin========\n");
   int garbage_collect_size = 0;
   void *gc_frame = gc_frame_prev; //The gc_frame currently traversed to
   while (gc_frame != 0)
   {
     /* code */
-    double item_num = *(double *)gc_frame; //how many obj_model in this gc_frame
+    double item_num;
+    memcpy(&item_num, gc_frame, 8);        //how many obj_model in this gc_frame
     void *ref_var = (void *)gc_frame + 16; //obj_models begin address
     for (int i = 0; i < item_num; i++)
     {
-      void *obj_model = (void *)(ref_var + i * 8); //current obj_model in traversed in this frame
-      void *forward = (void *)(obj_model + 16);    //Avoid secondary copying
-      if (forward < heap.fromFree && forward > heap.from)
+      void *obj_model;
+      memcpy(&obj_model, ref_var + i * 8, 8); //current obj_model in traversed in this frame
+      void *forward;
+      memcpy(&forward, obj_model + 16, 8); //Avoid secondary copying
+      printf("%x %x\n",obj_model,forward);
+      if (forward <= heap.fromFree && forward >= heap.from)
       {
         int copy_length;
-        if (*(int *)(obj_model + 8) == 0) //normal obj
-          copy_length = *(int *)(obj_model + 12) + 24;
-        else //array obj
-          copy_length = *(int *)(obj_model + 12) * sizeof(int) + 24;
+        int flag;
+        memcpy(&flag, obj_model + 8, 4);
+        memcpy(&copy_length, obj_model + 12, 4);
+        if (flag == 0)
+        {
+          copy_length += 24;
+        } //normal obj
+        else
+        {
+          copy_length = copy_length * sizeof(int) + 24;
+        } //array obj
+        memcpy(obj_model + 16, &heap.toNext, 8);
         memcpy(heap.toNext, obj_model, copy_length);
-        forward = heap.toNext;
         heap.toNext += copy_length;
       }
     }
@@ -214,5 +233,6 @@ static int Tiger_gc()
   heap.fromFree = heap.toNext;
   heap.toStart = pre_from;
   heap.toNext = pre_from;
+  printf("collect garbage %d byte\n", garbage_collect_size);
   return garbage_collect_size;
 }

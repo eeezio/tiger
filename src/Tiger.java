@@ -154,7 +154,7 @@ public class Tiger {
         // file, or call java to run the bytecode file,
         // or dalvik to run the dalvik bytecode.
         // Your code here:
-        Process process = Runtime.getRuntime().exec("gcc runtime.c");
+        Process process = Runtime.getRuntime().exec("./glue.sh");
         process.waitFor();
         return;
     }
