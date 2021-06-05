@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "control.h"
 
 extern void *gc_frame_prev;
 
@@ -225,9 +226,10 @@ static int Tiger_gc()
   garbage_collect_size = (heap.fromFree - heap.from) - (heap.toNext - heap.toStart);
   heap.from = heap.toStart;
   heap.fromFree = heap.toNext;
-  heap.to=heap.from+heap.size/2;
+  heap.to = heap.from + heap.size / 2;
   heap.toStart = pre_from;
   heap.toNext = pre_from;
-  printf("collect garbage %d bytes\n", garbage_collect_size);
+  if (show_collect_info)
+    printf("collect garbage %d bytes\n", garbage_collect_size);
   return garbage_collect_size;
 }

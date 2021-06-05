@@ -3,4 +3,6 @@
 tiger.iml
 .DS_Store
 a.out
+runtime/mini_java_main.c
+runtime/a.out
 mini_java_main.c
