@@ -34,7 +34,9 @@ import ast.Ast.Type.IntArray;
 public interface Visitor
 {
   // expressions
+
   public void visit(Add e);
+
 
   public void visit(And e);
 
@@ -102,4 +104,5 @@ public interface Visitor
 
   // program
   public void visit(ast.Ast.Program.ProgramSingle p);
+
 }
