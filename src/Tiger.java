@@ -14,6 +14,8 @@ import parser.Parser;
 import control.CommandLine;
 import control.Control;
 
+import javax.swing.*;
+
 
 public class Tiger {
     static Tiger tiger;
@@ -22,7 +24,7 @@ public class Tiger {
     public ast.Ast.Program.T theAst;
 
     // lex and parse
-    private void lexAndParse(String fname) {
+    public void lexAndParse(String fname) {
         Parser parser;
 
         try {
@@ -162,83 +164,84 @@ public class Tiger {
                     System.out.println(token.toString());
                     token = lexer.nextToken();
                 }
-
-                // /////////////////////////////////////////////////////////
-                // normal compilation phases.
-                Program.T theAst = null;
-
-                control.CompilerPass lexAndParsePass = new control.CompilerPass(
-                        "Lex and parse", tiger, fname);
-                lexAndParsePass.doitName("lexAndParse");
-
-                // pretty printing the AST, if necessary
-                if (dumpAst) {
-                    ast.PrettyPrintVisitor pp = new ast.PrettyPrintVisitor();
-                    control.CompilerPass ppAstPass = new control.CompilerPass(
-                            "Pretty printing the AST", theAst, pp);
-                    ppAstPass.doit();
-                }
-
-                // elaborate the AST, report all possible errors.
-                elaborator.ElaboratorVisitor elab = new elaborator.ElaboratorVisitor();
-                control.CompilerPass elabAstPass = new control.CompilerPass(
-                        "Elaborating the AST", theAst, elab);
-                elabAstPass.doit();
-
-                // optimize the AST
-                ast.optimizations.Main optAstPasses = new ast.optimizations.Main();
-                control.CompilerPass optAstPass = new control.CompilerPass(
-                        "Optimizing the AST", optAstPasses, theAst);
-                optAstPass.doitName("doit");
-                theAst = optAstPasses.program;
-
-                // code generation
-                switch (control.Control.ConCodeGen.codegen) {
-                    case Bytecode:
-                        codegen.bytecode.TranslateVisitor trans = new codegen.bytecode.TranslateVisitor();
-                        control.CompilerPass genBytecodePass = new control.CompilerPass(
-                                "Bytecode generation", theAst, trans);
-                        genBytecodePass.doit();
-                        codegen.bytecode.Ast.Program.T bytecodeAst = trans.program;
-                        codegen.bytecode.PrettyPrintVisitor ppbc = new codegen.bytecode.PrettyPrintVisitor();
-                        control.CompilerPass ppBytecodePass = new control.CompilerPass(
-                                "Bytecode printing", bytecodeAst, ppbc);
-                        ppBytecodePass.doit();
-                        break;
-                    case C:
-                        codegen.C.TranslateVisitor transC = new codegen.C.TranslateVisitor();
-                        control.CompilerPass genCCodePass = new control.CompilerPass(
-                                "C code generation", theAst, transC);
-                        genCCodePass.doit();
-                        codegen.C.Ast.Program.T cAst = transC.program;
-                        codegen.C.PrettyPrintVisitor ppc = new codegen.C.PrettyPrintVisitor();
-                        control.CompilerPass ppCCodePass = new control.CompilerPass(
-                                "C code printing", cAst, ppc);
-                        ppCCodePass.doit();
-                        break;
-                    case Dalvik:
-                        codegen.dalvik.TranslateVisitor transDalvik = new codegen.dalvik.TranslateVisitor();
-                        control.CompilerPass genDalvikCodePass = new control.CompilerPass(
-                                "Dalvik code generation", theAst, transDalvik);
-                        genDalvikCodePass.doit();
-                        codegen.dalvik.Ast.Program.T dalvikAst = transDalvik.program;
-
-                        codegen.dalvik.PrettyPrintVisitor ppDalvik = new codegen.dalvik.PrettyPrintVisitor();
-                        control.CompilerPass ppDalvikCodePass = new control.CompilerPass(
-                                "Dalvik code printing", dalvikAst, ppDalvik);
-                        ppDalvikCodePass.doit();
-                        break;
-                    case X86:
-                        // similar
-                        break;
-                    default:
-                        break;
-                }
-                return;
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+            } catch (FileNotFoundException fileNotFoundException) {
+                fileNotFoundException.printStackTrace();
             }
         }
+
+        // /////////////////////////////////////////////////////////
+        // normal compilation phases.
+//        Program.T theAst = null;
+
+        control.CompilerPass lexAndParsePass = new control.CompilerPass(
+                "Lex and parse", tiger, fname);
+        lexAndParsePass.doitName("lexAndParse");
+
+        // pretty printing the AST, if necessary
+        if (dumpAst) {
+            ast.PrettyPrintVisitor pp = new ast.PrettyPrintVisitor();
+            control.CompilerPass ppAstPass = new control.CompilerPass(
+                    "Pretty printing the AST", theAst, pp);
+            ppAstPass.doit();
+        }
+
+        // elaborate the AST, report all possible errors.
+        elaborator.ElaboratorVisitor elab = new elaborator.ElaboratorVisitor();
+        control.CompilerPass elabAstPass = new control.CompilerPass(
+                "Elaborating the AST", theAst, elab);
+        elabAstPass.doit();
+
+        // optimize the AST
+        ast.optimizations.Main optAstPasses = new ast.optimizations.Main();
+        control.CompilerPass optAstPass = new control.CompilerPass(
+                "Optimizing the AST", optAstPasses, theAst);
+//        optAstPass.doitName("doit");
+        optAstPass.doit();
+        theAst = optAstPasses.program;
+
+        // code generation
+        switch (control.Control.ConCodeGen.codegen) {
+            case Bytecode:
+                codegen.bytecode.TranslateVisitor trans = new codegen.bytecode.TranslateVisitor();
+                control.CompilerPass genBytecodePass = new control.CompilerPass(
+                        "Bytecode generation", theAst, trans);
+                genBytecodePass.doit();
+                codegen.bytecode.Ast.Program.T bytecodeAst = trans.program;
+                codegen.bytecode.PrettyPrintVisitor ppbc = new codegen.bytecode.PrettyPrintVisitor();
+                control.CompilerPass ppBytecodePass = new control.CompilerPass(
+                        "Bytecode printing", bytecodeAst, ppbc);
+                ppBytecodePass.doit();
+                break;
+            case C:
+                codegen.C.TranslateVisitor transC = new codegen.C.TranslateVisitor();
+                control.CompilerPass genCCodePass = new control.CompilerPass(
+                        "C code generation", theAst, transC);
+                genCCodePass.doit();
+                codegen.C.Ast.Program.T cAst = transC.program;
+                codegen.C.PrettyPrintVisitor ppc = new codegen.C.PrettyPrintVisitor();
+                control.CompilerPass ppCCodePass = new control.CompilerPass(
+                        "C code printing", cAst, ppc);
+                ppCCodePass.doit();
+                break;
+            case Dalvik:
+                codegen.dalvik.TranslateVisitor transDalvik = new codegen.dalvik.TranslateVisitor();
+                control.CompilerPass genDalvikCodePass = new control.CompilerPass(
+                        "Dalvik code generation", theAst, transDalvik);
+                genDalvikCodePass.doit();
+                codegen.dalvik.Ast.Program.T dalvikAst = transDalvik.program;
+
+                codegen.dalvik.PrettyPrintVisitor ppDalvik = new codegen.dalvik.PrettyPrintVisitor();
+                control.CompilerPass ppDalvikCodePass = new control.CompilerPass(
+                        "Dalvik code printing", dalvikAst, ppDalvik);
+                ppDalvikCodePass.doit();
+                break;
+            case X86:
+                // similar
+                break;
+            default:
+                break;
+        }
+        return;
     }
 
     public void assemble(String str) {
