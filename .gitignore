@@ -6,4 +6,4 @@ src/.DS_store
 a.out
 runtime/mini_java_main.c
 runtime/a.out
-mini_java_main.c
+runtime/mini_java_main.c

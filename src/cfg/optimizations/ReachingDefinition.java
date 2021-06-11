@@ -3,6 +3,7 @@ package cfg.optimizations;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import cfg.Cfg;
 import cfg.Cfg.Block;
 import cfg.Cfg.Block.BlockSingle;
 import cfg.Cfg.Class.ClassSingle;
@@ -106,6 +107,11 @@ public class ReachingDefinition implements cfg.Visitor
   {
   }
 
+  @Override
+  public void visit(Cfg.Operand.IntArray o) {
+
+  }
+
   // statements
   @Override
   public void visit(Add s)
@@ -130,6 +136,21 @@ public class ReachingDefinition implements cfg.Visitor
   @Override
   public void visit(NewObject s)
   {
+  }
+
+  @Override
+  public void visit(Stm.NewIntArray m) {
+
+  }
+
+  @Override
+  public void visit(Stm.Not m) {
+
+  }
+
+  @Override
+  public void visit(Stm.Length m) {
+
   }
 
   @Override
@@ -162,6 +183,11 @@ public class ReachingDefinition implements cfg.Visitor
   @Override
   public void visit(Return s)
   {
+  }
+
+  @Override
+  public void visit(Stm.And m) {
+
   }
 
   // type

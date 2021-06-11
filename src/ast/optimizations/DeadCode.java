@@ -529,7 +529,6 @@ public class DeadCode implements ast.Visitor {
             prog.mainClass.accept(this);
             for (Ast.Class.T classs : prog.classes
             ) {
-                ClassSingle fuck = (ClassSingle) classs;
                 classs.accept(this);
             }
             this.program = new ProgramSingle(mainClass, newClasss);

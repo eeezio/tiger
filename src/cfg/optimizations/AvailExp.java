@@ -1,5 +1,6 @@
 package cfg.optimizations;
 
+import cfg.Cfg;
 import cfg.Cfg.Block.BlockSingle;
 import cfg.Cfg.Class.ClassSingle;
 import cfg.Cfg.Dec.DecSingle;
@@ -44,6 +45,11 @@ public class AvailExp implements cfg.Visitor
   {
   }
 
+  @Override
+  public void visit(Cfg.Operand.IntArray o) {
+
+  }
+
   // statements
   @Override
   public void visit(Add s)
@@ -68,6 +74,21 @@ public class AvailExp implements cfg.Visitor
   @Override
   public void visit(NewObject s)
   {
+  }
+
+  @Override
+  public void visit(Cfg.Stm.NewIntArray m) {
+
+  }
+
+  @Override
+  public void visit(Cfg.Stm.Not m) {
+
+  }
+
+  @Override
+  public void visit(Cfg.Stm.Length m) {
+
   }
 
   @Override
@@ -100,6 +121,11 @@ public class AvailExp implements cfg.Visitor
   @Override
   public void visit(Return s)
   {
+  }
+
+  @Override
+  public void visit(Cfg.Stm.And m) {
+
   }
 
   //////////////////////////////////////////////////

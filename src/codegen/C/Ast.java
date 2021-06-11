@@ -145,12 +145,12 @@ public class Ast {
             public LinkedList<T> args;
             public Type.T retType;
 
-            public Call(String assign, T exp, String id, java.util.LinkedList<T> args,Type.T retType) {
+            public Call(String assign, T exp, String id, java.util.LinkedList<T> args, Type.T retType) {
                 this.assign = assign;
                 this.exp = exp;
                 this.id = id;
                 this.args = args;
-                this.retType=retType;
+                this.retType = retType;
             }
 
             @Override
@@ -176,7 +176,7 @@ public class Ast {
 
         public static class Length extends T {
 
-            String assign;
+            public String assign;
 
             public T array;
 

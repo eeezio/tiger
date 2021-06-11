@@ -8,14 +8,7 @@ import cfg.Cfg.Method.MethodSingle;
 import cfg.Cfg.Operand.Int;
 import cfg.Cfg.Operand.Var;
 import cfg.Cfg.Program.ProgramSingle;
-import cfg.Cfg.Stm.Add;
-import cfg.Cfg.Stm.InvokeVirtual;
-import cfg.Cfg.Stm.Lt;
-import cfg.Cfg.Stm.Move;
-import cfg.Cfg.Stm.NewObject;
-import cfg.Cfg.Stm.Print;
-import cfg.Cfg.Stm.Sub;
-import cfg.Cfg.Stm.Times;
+import cfg.Cfg.Stm.*;
 import cfg.Cfg.Transfer.Goto;
 import cfg.Cfg.Transfer.If;
 import cfg.Cfg.Transfer.Return;
@@ -24,62 +17,71 @@ import cfg.Cfg.Type.IntArrayType;
 import cfg.Cfg.Type.IntType;
 import cfg.Cfg.Vtable.VtableSingle;
 
-public interface Visitor
-{
-  // operand
-  public void visit(Int o);
+public interface Visitor {
+    // operand
+    public void visit(Int o);
 
-  public void visit(Var o);
+    public void visit(Var o);
 
-  // type
-  public void visit(ClassType t);
+    public void visit(Cfg.Operand.IntArray o);
 
-  public void visit(IntType t);
+    // type
+    public void visit(ClassType t);
 
-  public void visit(IntArrayType t);
+    public void visit(IntType t);
 
-  // dec
-  public void visit(DecSingle d);
+    public void visit(IntArrayType t);
 
-  // transfer
-  public void visit(If t);
+    // dec
+    public void visit(DecSingle d);
 
-  public void visit(Goto t);
+    // transfer
+    public void visit(If t);
 
-  public void visit(Return t);
+    public void visit(Goto t);
 
-  // statement:
-  public void visit(Add m);
+    public void visit(Return t);
 
-  public void visit(InvokeVirtual m);
+    // statement:
+    public void visit(Cfg.Stm.And m);
 
-  public void visit(Lt m);
+    public void visit(Add m);
 
-  public void visit(Move m);
-  
-  public void visit(NewObject m);
-  
-  public void visit(Print m);
+    public void visit(InvokeVirtual m);
 
-  public void visit(Sub m);
+    public void visit(Lt m);
 
-  public void visit(Times m);
+    public void visit(Move m);
 
-  // block
-  public void visit(BlockSingle b);
+    public void visit(NewObject m);
 
-  // method
-  public void visit(MethodSingle m);
+    public void visit(Cfg.Stm.NewIntArray m);
 
-  // vtable
-  public void visit(VtableSingle v);
+    public void visit(Not m);
 
-  // class
-  public void visit(ClassSingle c);
+    public void visit(Length m);
 
-  // main method
-  public void visit(MainMethodSingle c);
+    public void visit(Print m);
 
-  // program
-  public void visit(ProgramSingle p);
+    public void visit(Sub m);
+
+    public void visit(Times m);
+
+    // block
+    public void visit(BlockSingle b);
+
+    // method
+    public void visit(MethodSingle m);
+
+    // vtable
+    public void visit(VtableSingle v);
+
+    // class
+    public void visit(ClassSingle c);
+
+    // main method
+    public void visit(MainMethodSingle c);
+
+    // program
+    public void visit(ProgramSingle p);
 }
