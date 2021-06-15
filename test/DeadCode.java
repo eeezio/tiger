@@ -5,7 +5,9 @@ class DeadCode {
 }
 
 class Doit {
+    int dead1;
     public int doit() {
+        int dead2;
         if (true)
           System.out.println(1);
         else 

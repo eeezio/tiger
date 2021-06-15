@@ -55,9 +55,10 @@ public class LivenessVisitor implements cfg.Visitor {
     public java.util.HashMap<Transfer.T, java.util.HashSet<String>> transferLiveOut;
 
     // As you will walk the tree for many times, so
-    // it will be useful to recored which is which:
+    // it will be useful to recored which is which
+
     enum Liveness_Kind_t {
-        None, StmGenKill, BlockGenKill, BlockInOut, StmInOut,
+        None, StmGenKill, StmKill, StmGen, TransferGen, TransferKill, BlockGenKill, BlockInOut, StmInOut,
     }
 
     private Liveness_Kind_t kind = Liveness_Kind_t.None;
@@ -126,13 +127,27 @@ public class LivenessVisitor implements cfg.Visitor {
 
     @Override
     public void visit(Var operand) {
-        this.oneStmGen.add(operand.id);
+        switch (kind) {
+            case StmKill:
+                this.oneStmKill.add(operand.id);
+                break;
+            case StmGen:
+                this.oneStmGen.add(operand.id);
+                break;
+            case TransferGen:
+                this.oneTransferGen.add(operand.id);
+                break;
+            case TransferKill:
+                this.oneTransferKill.add(operand.id);
+                break;
+        }
         return;
     }
 
     @Override
     public void visit(Operand.IntArray o) {
 //todo
+        o.index.accept(this);
     }
 
     // statements
@@ -140,6 +155,7 @@ public class LivenessVisitor implements cfg.Visitor {
     public void visit(Add s) {
         this.oneStmKill.add(s.dst);
         // Invariant: accept() of operand modifies "gen"
+        kind = Liveness_Kind_t.StmGen;
         s.left.accept(this);
         s.right.accept(this);
         return;
@@ -149,6 +165,7 @@ public class LivenessVisitor implements cfg.Visitor {
     public void visit(InvokeVirtual s) {
         this.oneStmKill.add(s.dst);
         this.oneStmGen.add(s.obj);
+        kind = Liveness_Kind_t.StmGen;
         for (Operand.T arg : s.args) {
             arg.accept(this);
         }
@@ -159,6 +176,7 @@ public class LivenessVisitor implements cfg.Visitor {
     public void visit(Lt s) {
         this.oneStmKill.add(s.dst);
         // Invariant: accept() of operand modifies "gen"
+        kind = Liveness_Kind_t.StmGen;
         s.left.accept(this);
         s.right.accept(this);
         return;
@@ -168,6 +186,7 @@ public class LivenessVisitor implements cfg.Visitor {
     public void visit(Move s) {
         this.oneStmKill.add(s.dst);
         // Invariant: accept() of operand modifies "gen"
+        kind = Liveness_Kind_t.StmGen;
         s.src.accept(this);
         return;
     }
@@ -180,16 +199,18 @@ public class LivenessVisitor implements cfg.Visitor {
 
     @Override
     public void visit(NewIntArray m) {
-
+        this.oneStmKill.add(m.dst);
     }
 
     @Override
     public void visit(Not m) {
-
+        this.oneStmKill.add(m.dst);
+        m.src.accept(this);
     }
 
     @Override
     public void visit(Print s) {
+        kind = Liveness_Kind_t.StmGen;
         s.arg.accept(this);
         return;
     }
@@ -197,12 +218,14 @@ public class LivenessVisitor implements cfg.Visitor {
     @Override
     public void visit(Stm.Length s) {
         //TODO
+        this.oneStmKill.add(s.dst);
     }
 
     @Override
     public void visit(Sub s) {
         this.oneStmKill.add(s.dst);
         // Invariant: accept() of operand modifies "gen"
+        kind = Liveness_Kind_t.StmGen;
         s.left.accept(this);
         s.right.accept(this);
         return;
@@ -220,6 +243,7 @@ public class LivenessVisitor implements cfg.Visitor {
     // transfer
     @Override
     public void visit(If s) {
+        kind = Liveness_Kind_t.TransferGen;
         // Invariant: accept() of operand modifies "gen"
         s.operand.accept(this);
         return;
@@ -232,6 +256,7 @@ public class LivenessVisitor implements cfg.Visitor {
 
     @Override
     public void visit(Return s) {
+        kind = Liveness_Kind_t.TransferGen;
         // Invariant: accept() of operand modifies "gen"
         s.operand.accept(this);
         return;
@@ -239,7 +264,9 @@ public class LivenessVisitor implements cfg.Visitor {
 
     @Override
     public void visit(And m) {
-
+        this.oneStmKill.add(m.dst);
+        m.left.accept(this);
+        m.right.accept(this);
     }
 
     // type
@@ -269,7 +296,7 @@ public class LivenessVisitor implements cfg.Visitor {
             this.stmGen.put(s, this.oneStmGen);
             this.stmKill.put(s, this.oneStmKill);
             if (control.Control.isTracing("liveness.step1")) {
-                System.out.print("\ngen, kill for statement:");
+                System.out.print("\ngen, kill for statement " + s + ":");
                 s.toString();
                 System.out.print("\ngen is:");
                 for (String str : this.oneStmGen) {
@@ -287,7 +314,7 @@ public class LivenessVisitor implements cfg.Visitor {
         this.transferGen.put(b.transfer, this.oneTransferGen);
         this.transferKill.put(b.transfer, this.oneTransferGen);
         if (control.Control.isTracing("liveness.step1")) {
-            System.out.print("\ngen, kill for transfer:");
+            System.out.print("\ngen, kill for transfer " + b.transfer + ":");
             b.toString();
             System.out.print("\ngen is:");
             for (String str : this.oneTransferGen) {
@@ -320,8 +347,8 @@ public class LivenessVisitor implements cfg.Visitor {
         // Four steps:
         // Step 1: calculate the "gen" and "kill" sets for each
         // statement and transfer
-        this.kind = Liveness_Kind_t.StmGenKill;
         for (Block.T block : m.blocks) {
+            kind = Liveness_Kind_t.StmGenKill;
             block.accept(this);
         }
 
@@ -348,8 +375,8 @@ public class LivenessVisitor implements cfg.Visitor {
         // Four steps:
         // Step 1: calculate the "gen" and "kill" sets for each
         // statement and transfer
-        this.kind = Liveness_Kind_t.StmGenKill;
         for (Block.T block : m.blocks) {
+            kind = Liveness_Kind_t.BlockGenKill;
             block.accept(this);
         }
 

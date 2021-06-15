@@ -109,8 +109,8 @@ public class Cfg {
 
 
         public static class IntArray extends T {
-            String id;
-            Operand.T index;
+            public String id;
+            public Operand.T index;
 
             IntArray(String id, Operand.T index) {
                 this.id = id;
