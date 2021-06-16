@@ -18,8 +18,7 @@ import cfg.Cfg.Type.IntArrayType;
 import cfg.Cfg.Type.IntType;
 import cfg.Cfg.Vtable.VtableSingle;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 public class LivenessVisitor implements cfg.Visitor {
     // gen, kill for one statement
@@ -116,6 +115,52 @@ public class LivenessVisitor implements cfg.Visitor {
         java.util.HashSet<String> temp = this.oneTransferKill;
         this.oneTransferKill = new java.util.HashSet<>();
         return temp;
+    }
+
+
+    private boolean checkFixPoint(LinkedHashMap<Block.T, Integer> fixPointFlag, StringBuffer bitVector) {
+        int iter = 0;
+        for (Integer i : fixPointFlag.values()
+        ) {
+            if (i.intValue() != Integer.valueOf(bitVector.charAt(iter)))
+                return true;
+            iter += 1;
+        }
+        return false;
+    }
+
+    private void initFixPointFlagAndBitVector(LinkedHashMap<Block.T, Integer> fixPointFlag, StringBuffer bitVector) {
+        int iter = 0;
+        for (Integer i : fixPointFlag.values()
+        ) {
+            bitVector.setCharAt(iter, (char) i.intValue());
+            iter += 1;
+        }
+    }
+
+    private void getSucc(LinkedList<String> succ, Transfer.T transfer) {
+        if (transfer instanceof If) {
+            succ.add(((If) transfer).truee.toString());
+            succ.add(((If) transfer).falsee.toString());
+        } else if (transfer instanceof Goto) {
+            succ.add(((Goto) transfer).label.toString());
+        }
+    }
+
+    private void getStmLiveIn(Stm.T curStm) {
+        if (stmLiveIn.get(curStm) == null) {
+            stmLiveIn.put(curStm, new HashSet<>());
+        }
+        for (String var : stmGen.get(curStm)
+        ) {
+            stmLiveIn.get(curStm).add(var);
+        }
+        for (String var : stmLiveOut.get(curStm)
+        ) {
+            if (!stmKill.get(curStm).contains(var)) {
+                stmLiveIn.get(curStm).add(var);
+            }
+        }
     }
 
     // /////////////////////////////////////////////////////
@@ -357,6 +402,31 @@ public class LivenessVisitor implements cfg.Visitor {
         // block in a reverse order.
         // Your code here:
 
+
+        //construct block kill and gen.
+        for (Block.T block : m.blocks) {
+            HashSet<String> blockKillVar = new HashSet<>();
+            HashSet<String> blockGenVar = new HashSet<>();
+            block = (BlockSingle) block;
+            for (String var : transferGen.get(((BlockSingle) block).transfer)
+            ) {
+                blockGenVar.add(var);
+            }
+
+            for (int i = ((BlockSingle) block).stms.size() - 1; i >= 0; i--) {
+                for (String var : stmGen.get(((BlockSingle) block).stms.get(i)))
+                    if (!blockKillVar.contains(var))
+                        blockGenVar.add(var);
+
+                for (String var : stmKill.get(((BlockSingle) block).stms.get(i)))
+                    blockKillVar.add(var);
+            }
+
+            blockGen.put(block, blockGenVar);
+            blockKill.put(block, blockKillVar);
+        }
+
+
         // Step 3: calculate the "liveIn" and "liveOut" sets for each block
         // Note that to speed up the calculation, you should first
         // calculate a reverse topo-sort order of the CFG blocks, and
@@ -364,10 +434,126 @@ public class LivenessVisitor implements cfg.Visitor {
         // And also you should loop until a fix-point is reached.
         // Your code here:
 
+        LinkedHashMap<Block.T, Integer> fixPointInFlag = new LinkedHashMap<>();
+        LinkedHashMap<Block.T, Integer> fixPointOutFlag = new LinkedHashMap<>();
+        StringBuffer bitVectorIn = new StringBuffer();
+        StringBuffer bitVectorOut = new StringBuffer();
+        for (Block.T block : m.blocks
+        ) {
+            fixPointInFlag.put(block, 0);
+            fixPointOutFlag.put(block, 0);
+            bitVectorIn.append(-1);
+            bitVectorOut.append(-1);
+            blockLiveIn.put(block, new HashSet<>());
+            blockLiveOut.put(block, new HashSet<>());
+        }
+        while (checkFixPoint(fixPointInFlag, bitVectorIn) || checkFixPoint(fixPointOutFlag, bitVectorOut)) {
+            initFixPointFlagAndBitVector(fixPointInFlag, bitVectorIn);
+            initFixPointFlagAndBitVector(fixPointOutFlag, bitVectorOut);
+
+            for (Block.T block : m.blocks
+            ) {
+                //rebuild in set
+                for (String var : blockGen.get(block)
+                ) {
+                    blockLiveIn.get(block).add(var);
+                }
+
+                for (String var : blockLiveOut.get(block)
+                ) {
+                    if (!blockKill.get(block).contains(var)) {
+                        blockLiveIn.get(block).add(var);
+                    }
+                }
+                fixPointInFlag.put(block, blockLiveIn.size());
+
+                //collect succ info.
+                Transfer.T transfer = ((BlockSingle) block).transfer;
+                LinkedList<String> succ = new LinkedList<>();
+                getSucc(succ, transfer);
+
+                //rebuild out set
+                for (Block.T mayBeIn : m.blocks
+                ) {
+                    if (succ.contains(((BlockSingle) mayBeIn).label.toString())) {
+                        for (String var : blockLiveIn.get(mayBeIn)
+                        ) {
+                            blockLiveOut.get(block).add(var);
+                        }
+                    }
+                    fixPointOutFlag.put(block, blockLiveOut.size());
+                }
+            }
+
+        }
+
+        Set<Block.T> keyset = blockKill.keySet();
+        for (Block.T key : keyset
+        ) {
+            key = (BlockSingle) key;
+            System.out.println(((BlockSingle) key).label);
+            System.out.println("=====block kill vars=====");
+            for (String var :
+                    blockKill.get(key)) {
+                System.out.println(var);
+            }
+            System.out.println("======block kill over======");
+
+            System.out.println("=====block gen vars=====");
+            for (String var :
+                    blockGen.get(key)) {
+                System.out.println(var);
+            }
+            System.out.println("======block gen over======");
+        }
+        System.out.println("++++++++++++++++++++++");
+        keyset = blockLiveOut.keySet();
+        for (Block.T key : keyset
+        ) {
+            key = (BlockSingle) key;
+            System.out.println(((BlockSingle) key).label);
+            System.out.println("=====liveness vars=====");
+            for (String var :
+                    blockLiveOut.get(key)) {
+                System.out.println(var);
+            }
+            System.out.println("======over======");
+        }
+
         // Step 4: calculate the "liveIn" and "liveOut" sets for each
         // statement and transfer
         // Your code here:
 
+        for (int i = m.blocks.size() - 1; i >= 0; i--) {
+            BlockSingle block = (BlockSingle) m.blocks.get(i);
+            if (block.stms.size() > 0) {
+                Stm.T curStm = block.stms.get(block.stms.size() - 1);
+                stmLiveIn.put(curStm, new HashSet<>());
+                stmLiveOut.put(curStm, new HashSet<>());
+
+                Transfer.T transfer = block.transfer;
+                LinkedList<String> succ = new LinkedList<>();
+                getSucc(succ, transfer);
+                for (Block.T maySuccBlock : m.blocks
+                ) {
+                    if (succ.contains(((BlockSingle) maySuccBlock).label.toString())) {
+                        for (String var : blockLiveIn.get(maySuccBlock)
+                        )
+                            stmLiveOut.get(curStm).add(var);
+                    }
+                }
+
+                getStmLiveIn(curStm);
+
+                HashSet<String> preIn = stmLiveIn.get(curStm);
+                for (int j = block.stms.size() - 2; j >= 0; j--) {
+                    curStm = block.stms.get(j);
+                    stmLiveOut.put(curStm, preIn);
+                    getStmLiveIn(curStm);
+                    preIn = stmLiveIn.get(curStm);
+                }
+            }
+        }
     }
 
     @Override
@@ -414,6 +600,7 @@ public class LivenessVisitor implements cfg.Visitor {
         for (Method.T mth : p.methods) {
             mth.accept(this);
         }
+
         return;
     }
 
