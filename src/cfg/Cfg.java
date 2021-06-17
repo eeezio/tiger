@@ -474,7 +474,7 @@ public class Cfg {
 
             @Override
             public String toString() {
-                return "return" + operand + "\n";
+                return "return " + operand + "\n";
             }
 
             @Override

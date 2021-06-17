@@ -410,7 +410,6 @@ public class LivenessVisitor implements cfg.Visitor {
             kind = Liveness_Kind_t.StmGenKill;
             block.accept(this);
         }
-
         // Step 2: calculate the "gen" and "kill" sets for each block.
         // For this, you should visit statements and transfers in a
         // block in a reverse order.
@@ -427,7 +426,7 @@ public class LivenessVisitor implements cfg.Visitor {
                 blockGenVar.add(var);
             }
 
-            for (int i = ((BlockSingle) block).stms.size() - 1; i >= 0; i--) {
+            for (int i = 0; i < ((BlockSingle) block).stms.size(); i++) {
                 for (String var : stmGen.get(((BlockSingle) block).stms.get(i)))
                     if (!blockKillVar.contains(var))
                         blockGenVar.add(var);
@@ -464,7 +463,6 @@ public class LivenessVisitor implements cfg.Visitor {
         while (checkFixPoint(fixPointInFlag, bitVectorIn) || checkFixPoint(fixPointOutFlag, bitVectorOut)) {
             initFixPointFlagAndBitVector(fixPointInFlag, bitVectorIn);
             initFixPointFlagAndBitVector(fixPointOutFlag, bitVectorOut);
-
             for (Block.T block : m.blocks
             ) {
                 //rebuild in set
@@ -472,14 +470,12 @@ public class LivenessVisitor implements cfg.Visitor {
                 ) {
                     blockLiveIn.get(block).add(var);
                 }
-
                 for (String var : blockLiveOut.get(block)
                 ) {
                     if (!blockKill.get(block).contains(var)) {
                         blockLiveIn.get(block).add(var);
                     }
                 }
-                fixPointInFlag.put(block, blockLiveIn.size());
 
                 //collect succ info.
                 Transfer.T transfer = ((BlockSingle) block).transfer;
@@ -495,8 +491,9 @@ public class LivenessVisitor implements cfg.Visitor {
                             blockLiveOut.get(block).add(var);
                         }
                     }
-                    fixPointOutFlag.put(block, blockLiveOut.size());
                 }
+                fixPointOutFlag.put(block, blockLiveOut.size());
+                fixPointInFlag.put(block, blockLiveIn.size());
             }
 
         }
@@ -510,48 +507,29 @@ public class LivenessVisitor implements cfg.Visitor {
             BlockSingle block = (BlockSingle) m.blocks.get(i);
             HashSet<String> preIn = null;
             Stm.T curStm;
-            int offset = 0;
-            if (block.stms.size() > 0) {
-                Transfer.T transfer = block.transfer;
-                LinkedList<String> succ = new LinkedList<>();
-                getSucc(succ, transfer);
-                if (transfer instanceof If || transfer instanceof Return) {
-                    transferLiveOut.put(transfer, new HashSet<>());
-                    transferLiveIn.put(transfer, new HashSet<>());
-                    for (Block.T maySuccBlock : m.blocks
-                    ) {
-                        if (succ.contains(((BlockSingle) maySuccBlock).label.toString())) {
-                            for (String var : blockLiveIn.get(maySuccBlock)
-                            )
-                                transferLiveOut.get(transfer).add(var);
-                        }
+            Transfer.T transfer = block.transfer;
+            LinkedList<String> succ = new LinkedList<>();
+            getSucc(succ, transfer);
+            transferLiveOut.put(transfer, new HashSet<>());
+            transferLiveIn.put(transfer, new HashSet<>());
+            if (succ.size() != 0) {
+                for (Block.T maySuccBlock : m.blocks
+                ) {
+                    if (succ.contains(((BlockSingle) maySuccBlock).label.toString())) {
+                        for (String var : blockLiveIn.get(maySuccBlock)
+                        )
+                            transferLiveOut.get(transfer).add(var);
                     }
-                    getTransferLiveIn(transfer);
-                    preIn = transferLiveIn.get(transfer);
-                } else {
-                    curStm = block.stms.get(block.stms.size() - 1);
-                    stmLiveIn.put(curStm, new HashSet<>());
-                    stmLiveOut.put(curStm, new HashSet<>());
-                    for (Block.T maySuccBlock : m.blocks
-                    ) {
-                        if (succ.contains(((BlockSingle) maySuccBlock).label.toString())) {
-                            for (String var : blockLiveIn.get(maySuccBlock)
-                            )
-                                stmLiveOut.get(curStm).add(var);
-                        }
-                    }
-                    getStmLiveIn(curStm);
-                    preIn = stmLiveIn.get(curStm);
-                    offset = 1;
                 }
+            }
+            getTransferLiveIn(transfer);
+            preIn = transferLiveIn.get(transfer);
 
-
-                for (int j = block.stms.size() - 1 - offset; j >= 0; j--) {
-                    curStm = block.stms.get(j);
-                    stmLiveOut.put(curStm, preIn);
-                    getStmLiveIn(curStm);
-                    preIn = stmLiveIn.get(curStm);
-                }
+            for (int j = block.stms.size() - 1; j >= 0; j--) {
+                curStm = block.stms.get(j);
+                stmLiveOut.put(curStm, preIn);
+                getStmLiveIn(curStm);
+                preIn = stmLiveIn.get(curStm);
             }
         }
     }
@@ -601,7 +579,8 @@ public class LivenessVisitor implements cfg.Visitor {
             mth.accept(this);
         }
 
-        Set<Stm.T> keyset = stmLiveOut.keySet();
+
+        Set<T> keyset = stmLiveOut.keySet();
         for (Stm.T stm : keyset) {
             System.out.println(stm);
             System.out.println("liveout");
@@ -626,7 +605,7 @@ public class LivenessVisitor implements cfg.Visitor {
                     transferLiveOut.get(transfer)) {
                 System.out.println(var);
             }
-            System.out.println("liveout");
+            System.out.println("livein");
             for (String var :
                     transferLiveIn.get(transfer)) {
                 System.out.println(var);
